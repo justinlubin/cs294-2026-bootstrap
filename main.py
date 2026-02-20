@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # https://numpy.org/doc/stable/reference/generated/numpy.percentile.html
 
 
-def bootstrap(x, B, estimator):
+def bootstrap(x, estimator, B):
     N = len(x)
     estimates = []
     for _ in range(0, B):
@@ -26,32 +26,23 @@ b = [x - 0.8 for x in [2.1, 2.2, 2.1, 2, 1.7, 2.5, 2.5]]
 diffs = [x - y for x, y in zip(a, b)]
 
 fig, ax = plt.subplots(1, 1)
-ax.hist(a, alpha=0.5)
-ax.hist(b, alpha=0.5)
+ax.hist(diffs)
 fig.savefig("out1.png")
-
-fig, ax = plt.subplots(1, 1)
 
 estimator = statistics.mean
 point_estimate = estimator(diffs)
 print("point estimate:", point_estimate)
 
-estimates = bootstrap(diffs, B=10000, estimator=estimator)
-print("some bootstrap estimates", estimates[:10])
+estimates = bootstrap(diffs, estimator=estimator, B=10000)
+print("some bootstrap estimates:", estimates[:10])
+
+fig, ax = plt.subplots(1, 1)
 ax.hist(estimates, color="0.5")
+ax.axvline(point_estimate, color="red")
+fig.savefig("out2.png")
 
-ax.axvline(estimator(diffs), color="red")
-
-percentiles = statistics.quantiles(estimates, n=200)
-left = percentiles[5 - 1]  # 5/2 = 2.5
-right = percentiles[195 - 1]  # 195/2 = 97.5
+quants = statistics.quantiles(estimates, n=200)
+left = quants[5 - 1]  # 2.5 * 2, off by one
+right = quants[195 - 1]  # 97.5 * 2, off by one
 print("left endpoint:", left)
 print("right endpoint:", right)
-
-print("left distance:", point_estimate - left)
-print("right distance:", right - point_estimate)
-
-ax.axvline(left, color="orange")
-ax.axvline(right, color="blue")
-
-fig.savefig("out2.png")
